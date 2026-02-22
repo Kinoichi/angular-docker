@@ -1,0 +1,29 @@
+# We use Node to compile on the fly
+FROM node:24-alpine
+# Install Chromium
+#RUN apk add --no-cache chromium
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont
+# Set the environment variable here too just in case
+ENV CHROME_BIN=/usr/bin/chromium-browser
+WORKDIR /usr/src/app
+COPY package*.json ./
+
+RUN ls -a && echo "--- Before npm install ---"
+
+RUN npm install
+COPY . .
+
+# --- DEBUG COMMAND ---
+# This will print the file list during the 'docker-compose build'
+RUN ls -a && echo "--- Verify node_modules is NOT above ---"
+# ---------------------
+
+EXPOSE 4200
+# Running the dev server
+CMD ["npm", "run", "start", "--", "--host", "0.0.0.0", "--poll", "2000"]
