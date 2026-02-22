@@ -28,7 +28,7 @@ describe('App', () => {
 
   it('should have the default title signal value', async () => {
     const { fixture } = await setup();
-    expect(fixture.componentInstance['title']()).toBe('frontend-angularr');
+    expect(fixture.componentInstance['title']()).toBe('frontend-angular');
   });
 
   it('should make GET requests to all three API endpoints on init', async () => {
