@@ -57,7 +57,7 @@ pipeline {
                     sh "docker build ${tagArgs} ."
 
                     // Secure Login and Push
-                    sh "echo ${DOCKER_CREDS_PSW} | docker login -u ${DOCKER_CREDS_USR} --password-stdin"
+                    sh 'echo ${DOCKER_CREDS_PSW} | docker login -u ${DOCKER_CREDS_USR} --password-stdin'
                     
                     tags.each { tag ->
                         sh "docker push ${tag}"
