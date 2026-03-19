@@ -15,6 +15,10 @@ pipeline {
         }
 
         stage('Quality Check') {
+            // This pulls a Node image and runs the steps inside it
+            agent {
+                docker { image 'node:20-alpine' } 
+            }
             // This runs on EVERY branch and EVERY PR
             steps {
                 sh 'npm ci'
@@ -24,6 +28,7 @@ pipeline {
         }
 
         stage('Docker Publish') {
+            agent any // This stage uses your host's Docker engine
             // ONLY runs on 'main' branch or when you push a Git Tag (v1.0.0)
             when {
                 anyOf {
