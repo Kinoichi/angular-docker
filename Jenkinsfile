@@ -18,11 +18,14 @@ pipeline {
             agent {
                 // This is the "furniture" we are bringing in
                 docker { image 'node:20-alpine' } 
+
+                // This image comes pre-loaded with all browsers and dependencies
+                //docker { image 'mcr.microsoft.com/playwright:v1.40.0-jammy' }
             }
             steps {
                 sh 'npm ci'
                 sh 'npm run build'
-                sh "npm test -- --watch=false --browsers=chromium"
+                //sh "npm test -- --watch=false --browsers=chromium"
             }
         }
 
