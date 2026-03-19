@@ -1,51 +1,72 @@
 pipeline {
-    agent any 
+    agent any
 
     environment {
-        DOCKER_USER = "your_username"
+        DOCKER_USER = "baccichet"
         REPO_NAME   = "angular-docker"
-        DOCKER_HUB_AUTH = credentials('docker-hub-creds')
+        DOCKER_CREDS = credentials('docker-hub-creds')
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Equivalent to actions/checkout@v4
-                checkout scm 
+                checkout scm
             }
         }
 
-        stage('Install & Test') {
-            // This stage runs on EVERY branch (PRs and Main)
+        stage('Quality Check') {
+            // This runs on EVERY branch and EVERY PR
             steps {
                 sh 'npm ci'
-                // We use --browsers=ChromeHeadless because Jenkins doesn't have a screen
+                sh 'npm run lint'
                 sh 'npm test -- --watch=false --browsers=ChromeHeadless'
-                sh 'npm run build'
             }
         }
 
-        stage('Docker Build & Push') {
-            // This ONLY runs if we are on the 'main' branch
-            // Equivalent to your 'on: push: branches: [main]'
+        stage('Docker Publish') {
+            // ONLY runs on 'main' branch or when you push a Git Tag (v1.0.0)
             when {
-                branch 'main'
+                anyOf {
+                    branch 'main'
+                    buildingTag()
+                }
             }
             steps {
                 script {
-                    String shortSha = env.GIT_COMMIT.take(7)
-                    def tags = ["${DOCKER_USER}/${REPO_NAME}:latest", "${DOCKER_USER}/${REPO_NAME}:${shortSha}"]
+                    // Initialize the list with 'latest'
+                    def tags = ["${DOCKER_USER}/${REPO_NAME}:latest"]
                     
+                    // Add specific version tags
+                    if (env.TAG_NAME) {
+                        tags.add("${DOCKER_USER}/${REPO_NAME}:${env.TAG_NAME}")
+                    } else {
+                        // Use a short SHA for main branch pushes
+                        String shortSha = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                        tags.add("${DOCKER_USER}/${REPO_NAME}:${shortSha}")
+                    }
+
+                    // Build image with all tags
                     def tagArgs = tags.collect { "-t ${it}" }.join(' ')
                     sh "docker build ${tagArgs} ."
 
-                    sh "echo ${DOCKER_HUB_AUTH_PSW} | docker login -u ${DOCKER_HUB_AUTH_USR} --password-stdin"
+                    // Secure Login and Push
+                    sh "echo ${DOCKER_CREDS_PSW} | docker login -u ${DOCKER_CREDS_USR} --password-stdin"
                     
                     tags.each { tag ->
                         sh "docker push ${tag}"
                     }
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            // Cleanup: remove the image locally to save disk space on the server
+            sh "docker logout"
+        }
+        failure {
+            echo "Build failed! Check the logs for errors."
         }
     }
 }
