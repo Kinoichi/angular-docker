@@ -22,7 +22,7 @@ pipeline {
             steps {
                 sh 'npm ci'
                 sh 'npm run build'
-                sh 'npm test -- --watch=false --browsers=ChromeHeadless'
+                sh "npm test -- --watch=false --browsers=chromium"
             }
         }
 
