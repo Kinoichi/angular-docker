@@ -15,14 +15,14 @@ pipeline {
         }
 
         stage('Quality Check') {
-            // This pulls a Node image and runs the steps inside it
             agent {
+                // This is the "furniture" we are bringing in
                 docker { image 'node:20-alpine' } 
             }
-            // This runs on EVERY branch and EVERY PR
             steps {
                 sh 'npm ci'
                 sh 'npm run lint'
+                sh 'npm run build'
                 sh 'npm test -- --watch=false --browsers=ChromeHeadless'
             }
         }
