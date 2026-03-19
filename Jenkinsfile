@@ -15,15 +15,20 @@ pipeline {
         }
 
         stage('Quality Check') {
-            // This runs on EVERY branch and EVERY PR
+            agent {
+                // This is the "furniture" we are bringing in
+                docker { image 'node:20-alpine' } 
+            }
             steps {
                 sh 'npm ci'
                 sh 'npm run lint'
+                sh 'npm run build'
                 sh 'npm test -- --watch=false --browsers=ChromeHeadless'
             }
         }
 
         stage('Docker Publish') {
+            agent any // This stage uses your host's Docker engine
             // ONLY runs on 'main' branch or when you push a Git Tag (v1.0.0)
             when {
                 anyOf {
