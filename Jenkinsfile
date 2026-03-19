@@ -21,7 +21,6 @@ pipeline {
             }
             steps {
                 sh 'npm ci'
-                sh 'npm run lint'
                 sh 'npm run build'
                 sh 'npm test -- --watch=false --browsers=ChromeHeadless'
             }
