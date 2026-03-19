@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_USER = "your_docker_username"
+        DOCKER_USER = "baccichet"
         REPO_NAME   = "angular-docker"
         DOCKER_CREDS = credentials('docker-hub-creds')
     }
